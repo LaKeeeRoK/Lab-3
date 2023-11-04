@@ -1,59 +1,77 @@
 import tkinter as tk
-from tkinter import messagebox
-from sqrEq import sqrEquation
+import pygame
+from random import randint, shuffle
+import pyperclip
 
 
-def close():
-    window.destroy()
+def generate_password():
+    global answer
+    answer = ""
+    for _ in range(4):
+        letters = [chr(randint(65, 90)) for _ in range(3)]
+        num = str(randint(0, 9))
+        answer_lst = letters.copy()
+        answer_lst.append(num)
+        shuffle(answer_lst)
+        answer_str = "".join(answer_lst)
+        answer += answer_str + "-"
+    answer = answer[:-1]
+    canvas.itemconfig(pswd_canvas, text=answer)
 
 
-def calc():
-    A = float(arg_A.get())
-    B = float(arg_B.get())
-    C = float(arg_C.get())
-    if A == 0.0:
-        tk.messagebox.showwarning('Error', 'Division by zero!')
-    else:
-        lbl_result.configure(text=sqrEquation(A, B, C))
+def copy_password():
+    pyperclip.copy(answer)
+    label = tk.Label(root, text="Пароль скопирован!", font=("Arial", 25), fg="red")
+    label_window = canvas.create_window(460, 580, window=label)
+    root.after(1000, lambda: canvas.delete(label_window))
 
 
-window = tk.Tk()
-window.geometry('576x360')
-bg_img = tk.PhotoImage(file='bg_pic.png')
-
-lbl_bg = tk.Label(window, image=bg_img)
-lbl_bg.place(x=0, y=0, relwidth=1, relheight=1)
-
-frame = tk.Frame(window)
-frame.place(relx=0.5, rely=0.5, anchor='center')
-
-lbl_A = tk.Label(frame, text='A', font=('Arial', 30), bg='blue', fg='white')
-lbl_A.grid(column=0, row=0, padx=10, pady=15)
-arg_A = tk.Entry(frame, width=10)
-arg_A.insert(0, '1')
-arg_A.grid(column=0, row=1, padx=10, pady=15)
-
-lbl_B = tk.Label(frame, text='B', font=('Arial', 30))
-lbl_B.grid(column=1, row=0, padx=10, pady=15)
-arg_B = tk.Entry(frame, width=10)
-arg_B.insert(0, '0')
-arg_B.grid(column=1, row=1, padx=10, pady=15)
-
-lbl_C = tk.Label(frame, text='C', font=('Arial', 30))
-lbl_C.grid(column=2, row=0, padx=10, pady=15)
-arg_C = tk.Entry(frame, width=10)
-arg_C.insert(0, '0')
-arg_C.grid(column=2, row=1, padx=10, pady=15)
-
-lbl_roots = tk.Label(frame, text='Result:')
-lbl_roots.grid(column=1, row=2)
-lbl_result = tk.Label(frame, text='None yet.', font=('Arial', 10))
-lbl_result.grid(column=2, row=2)
-
-btn_calc = tk.Button(frame, text='Calculate', command=calc)
-btn_calc.grid(column=0, row=3, padx=10, pady=15)
-btn_exit = tk.Button(frame, text='Cancel', command=close)
-btn_exit.grid(column=2, row=3, padx=10, pady=15)
+def OffMusic():
+    global off_on_Music
+    if off_on_Music:
+        off_on_Music = False
+        pygame.mixer.music.pause()
+        return 0
+    off_on_Music = True
+    pygame.mixer.music.unpause()
 
 
-window.mainloop()
+answer = ""
+off_on_Music = True
+root = tk.Tk()
+root.title("Password")
+canvas = tk.Canvas(root, width=1920, height=1080)
+canvas.pack()
+
+image = tk.PhotoImage(file="background.png")
+canvas.create_image(0, 0, anchor=tk.NW, image=image)
+
+# button for off/on music
+button_OffMusic = tk.Button(root, text="Отключить музыку", command=OffMusic)
+button_OffMusic_canvas = canvas.create_window(50, 800, anchor="nw", window=button_OffMusic)
+
+# button for generate password
+button_pswd = tk.Button(root, text="Сгенерировать пароль", command=generate_password)
+button_pswd_canvas = canvas.create_window(465, 500, anchor="nw", window=button_pswd)
+
+# password output
+pswd_canvas = canvas.create_text(460, 450, text="Генерация ключа", fill="white", font=('Arial 30 bold'))
+
+# button for copy password
+button_copy = tk.Button(root, text="скопировать пароль", command=copy_password)
+button_copy_canvas = canvas.create_window(300, 500, anchor="nw", window=button_copy)
+
+# copy output
+copy_canvas = canvas.create_text(530, 650, text="", fill="white", font=('Arial 30 bold'))
+
+
+canvas.pack(fill="both", expand=True)
+
+# Play music
+pygame.init()
+pygame.mixer.init()
+pygame.mixer.music.load("1.mp3")
+pygame.mixer.music.play(-1)
+
+
+root.mainloop()
